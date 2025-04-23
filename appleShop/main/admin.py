@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.utils import timezone
 from .models import (
     UserProfile,
     Category,
@@ -28,9 +29,12 @@ class ArticleAdmin(admin.ModelAdmin):
 
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
-    list_display = ('title', 'price')
-    list_filter = ('price',)
-    search_fields = ('title',)
+    list_display = ('title', 'price', 'current_discount_display')
+    
+    def current_discount_display(self, obj):
+        discount = obj.current_discount  # Убраны скобки ()
+        return f"{discount.percent}%" if discount else "-"
+    current_discount_display.short_description = "Текущая скидка"
 
 @admin.register(Discount)
 class DiscountAdmin(admin.ModelAdmin):

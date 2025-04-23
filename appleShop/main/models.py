@@ -1,3 +1,4 @@
+from django.utils import timezone
 from django.db import models
 from django.contrib.auth.models import User
 
@@ -41,12 +42,31 @@ class Article(models.Model):
 
 
 class Product(models.Model):
-    title = models.CharField('Название продукта', max_length=200)
+    title = models.CharField('Название', max_length=200)
+    description = models.TextField('Описание', blank=True)
     price = models.DecimalField('Цена', max_digits=10, decimal_places=2)
-    image = models.ImageField('Изображение', upload_to='products/', blank=True)
+    image = models.ImageField('Изображение', upload_to='products/')
+    category = models.ForeignKey(
+        Category,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='products'
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    is_active = models.BooleanField('Активен', default=True)
 
     def __str__(self):
         return self.title
+
+    @property
+    def current_discount(self):
+        return self.discounts.filter(
+            start_date__lte=timezone.now().date(),  # Используем date()
+            end_date__gte=timezone.now().date()
+        ).first()
+
 
 
 class Discount(models.Model):
