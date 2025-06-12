@@ -1,0 +1,69 @@
+<!-- order_confirmation.html -->
+{% extends 'base.html' %}
+
+{% block title %}Заказ подтверждён{% endblock %}
+
+{% block content %}
+<div class="container my-5 text-center">
+    <div class="card border-success">
+        <div class="card-header bg-success text-white">
+            <h1 class="card-title mb-0">
+                <i class="bi bi-check-circle-fill me-2"></i>
+                Заказ успешно оформлен!
+            </h1>
+        </div>
+        <div class="card-body py-5">
+            <div class="display-1 text-success mb-4">
+                <i class="bi bi-check-circle"></i>
+            </div>
+            <h2 class="card-title mb-4">Спасибо за ваш заказ!</h2>
+            
+            <p class="lead mb-4">
+                Ваш заказ №<strong>{{ order.id }}</strong> успешно оформлен и передан в обработку.
+            </p>
+            
+            <div class="row justify-content-center mb-4">
+                <div class="col-md-8">
+                    <div class="card border-light">
+                        <div class="card-body">
+                            <h5 class="card-title">Детали заказа</h5>
+                            <ul class="list-group list-group-flush">
+                                <li class="list-group-item d-flex justify-content-between">
+                                    <span>Номер заказа:</span>
+                                    <strong>#{{ order.id }}</strong>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between">
+                                    <span>Дата оформления:</span>
+                                    <strong>{{ order.created_at|date:"d.m.Y H:i" }}</strong>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between">
+                                    <span>Сумма заказа:</span>
+                                    <strong>{{ order.total_price }} ₽</strong>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between">
+                                    <span>Статус:</span>
+                                    <span class="badge bg-info">В обработке</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <p class="text-muted mb-4">
+                Информация о заказе отправлена на вашу электронную почту {{ order.email }}.
+                <br>Наш менеджер свяжется с вами в ближайшее время для уточнения деталей доставки.
+            </p>
+            
+            <div class="d-grid gap-2 d-md-flex justify-content-md-center mt-4">
+                <a href="{% url 'main:home' %}" class="btn btn-outline-primary btn-lg px-5">
+                    <i class="bi bi-house-door me-2"></i>Вернуться на главную
+                </a>
+                <a href="{% url 'main:profile_orders' %}" class="btn btn-primary btn-lg px-5">
+                    <i class="bi bi-list-check me-2"></i>Мои заказы
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

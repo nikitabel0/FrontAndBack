@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 import os
 from pathlib import Path
+from celery.schedules import crontab
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -27,10 +28,7 @@ SECRET_KEY = 'django-insecure-3om2(-wmam5=mu#8v05uuc1o^eu4k^%979bxbx53pxs@62kw!d
 DEBUG = True
 
 
-MIDDLEWARE = [
-    'corsheaders.middleware.CorsMiddleware',  
-    ...
-]
+
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",  
@@ -49,14 +47,15 @@ CSRF_TRUSTED_ORIGINS = [
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
+    'django_filters',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'main',
     'corsheaders',
-    'rest_framework',
-    'django_filters',
+    'rest_framework', 
+    'silk.apps.SilkAppConfig', 
 ]
 
 REST_FRAMEWORK = {
@@ -68,6 +67,7 @@ REST_FRAMEWORK = {
 }
 
 MIDDLEWARE = [
+    'silk.middleware.SilkyMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -76,7 +76,44 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+  
 ]
+
+import tempfile
+MEDIA_ROOT = tempfile.mkdtemp()
+
+CELERY_BROKER_URL = 'redis://localhost:6379/0'
+CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
+CELERY_TIMEZONE = 'Europe/Moscow'
+CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'
+# Разрешить запись всех запросов
+SILKY_INTERCEPT_FUNC = lambda request: True
+
+CELERY_BEAT_SCHEDULE = {
+    'cancel-unpaid-orders': {
+        'task': 'main.tasks.cancel_unpaid_orders',
+        'schedule': crontab(minute=0, hour=0),  # Ежедневно в полночь
+    },
+    'generate-order-pdfs': {
+        'task': 'main.tasks.generate_order_pdfs',
+        'schedule': crontab(minute=0, hour=1),  # Ежедневно в 01:00
+    },
+    'send-weekly-stats': {
+        'task': 'main.tasks.send_weekly_stats',
+        'schedule': crontab(minute=0, hour=8, day_of_week=1),  # Каждый понедельник в 08:00
+    },
+}
+
+# Разрешить профилирование для всех пользователей (для тестирования)
+SILKY_AUTHENTICATION = False
+SILKY_AUTHORISATION = False
+
+# Увеличить лимит записанных запросов
+SILKY_MAX_RECORDED_REQUESTS = 10**4 
+SILKY_PYTHON_PROFILER = True
+SILKY_PYTHON_PROFILER_BINARY = True
+SILKY_INTERCEPT_PERCENT = 50  
+SILKY_MAX_RECORDED_REQUESTS = 10**4
 
 CORS_ALLOW_METHODS = [
     'GET',

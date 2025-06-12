@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+{% load custom_tags %}  {# Подключаем кастомные теги #}
+
+{% block title %}Корзина{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <h1>Ваша корзина</h1>
+    
+    {% with min_order_sum=10000 %}  {# Устанавливаем минимальную сумму #}
+    
+    {% if basket.items.all %}
+        <!-- Добавляем предупреждение о минимальной сумме -->
+        {% if basket.total_price < min_order_sum %}
+        <div class="alert alert-danger">
+            <h4 class="alert-heading">Внимание!</h4>
+            <p>
+                Минимальная сумма заказа для доставки составляет {{ min_order_sum }} ₽.
+                <br>Текущая сумма вашего заказа: <strong>{{ basket.total_price }} ₽</strong>.
+            </p>
+            <hr>
+            <p class="mb-0">
+                Пожалуйста, добавьте товаров на сумму еще {{ min_order_sum|subtract:basket.total_price }} ₽.
+            </p>
+        </div>
+        {% endif %}
+        
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Товар</th>
+                        <th>Цена</th>
+                        <th>Количество</th>
+                        <th>Сумма</th>
+                        <th>Действия</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in basket.items.all %}
+                    <tr>
+                        <td>
+                            <img src="{{ item.product.image.url }}" alt="{{ item.product.title }}" width="50" class="me-3">
+                            {{ item.product.title }}
+                        </td>
+                        <td>{{ item.product.price }} руб.</td>
+                        <td>
+                            <form method="post" action="{% url 'main:update_basket_item' item.id %}">
+                                {% csrf_token %}
+                                <div class="input-group" style="max-width: 120px;">
+                                    <input type="number" name="quantity" value="{{ item.quantity }}" min="1" class="form-control">
+                                    <button type="submit" class="btn btn-outline-primary">Обновить</button>
+                                </div>
+                            </form>
+                        </td>
+                        <td>{{ item.total_price }} руб.</td>
+                        <td>
+                            <form method="post" action="{% url 'main:update_basket_item' item.id %}">
+                                {% csrf_token %}
+                                <button type="submit" name="delete" class="btn btn-danger">
+                                    <i class="bi bi-trash"></i> Удалить
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="d-flex justify-content-end">
+            <div class="card p-3">
+                <h4>Итого: {{ basket.total_price }} руб.</h4>
+                
+                <!-- Отображаем кнопку оформления в зависимости от суммы -->
+                {% if basket.total_price >= min_order_sum %}
+                    <a href="{% url 'main:checkout' %}" class="btn btn-primary mt-2">Оформить заказ</a>
+                {% else %}
+                    <button class="btn btn-secondary mt-2" disabled>Оформить заказ</button>
+                    <p class="text-danger mt-2">Минимальная сумма заказа {{ min_order_sum }} руб.</p>
+                {% endif %}
+            </div>
+        </div>
+    {% else %}
+        <div class="alert alert-info">
+            Ваша корзина пуста
+        </div>
+        <a href="{% url 'main:home' %}" class="btn btn-outline-primary">Вернуться к покупкам</a>
+    {% endif %}
+    
+    {% endwith %}
+</div>
+{% endblock %}

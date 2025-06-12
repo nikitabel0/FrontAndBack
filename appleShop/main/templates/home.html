@@ -1,0 +1,203 @@
+{% extends 'base.html' %}
+
+{% block title %}Магазин Apple техники{% endblock %}
+
+{% block content %}
+<!-- Фильтры и сортировка -->
+<div class="container mb-4">
+    <h2>Фильтры товаров</h2>
+    <form method="get" class="row g-3">
+        <!-- Категория -->
+        <div class="col-md-3">
+            <label class="form-label">Категория:</label>
+            <select name="category" class="form-select">
+                <option value="">Все категории</option>
+                {% for cat in filter.form.category.field.queryset %}
+                    <option value="{{ cat.id }}" 
+                        {% if filter.form.category.value == cat.id|stringformat:"s" %}selected{% endif %}>
+                        {{ cat.name }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <!-- Производитель -->
+        <div class="col-md-3">
+            <label class="form-label">Производитель:</label>
+            <input type="text" name="manufacturer" class="form-control" 
+                   value="{{ filter.form.manufacturer.value|default_if_none:'' }}" 
+                   placeholder="Apple">
+        </div>
+        
+        <!-- Цена от -->
+        <div class="col-md-2">
+            <label class="form-label">Цена от:</label>
+            <input type="number" name="price_min" class="form-control" 
+                   value="{{ filter.form.price_min.value|default_if_none:'' }}" 
+                   placeholder="0" min="0">
+        </div>
+        
+        <!-- Цена до -->
+        <div class="col-md-2">
+            <label class="form-label">Цена до:</label>
+            <input type="number" name="price_max" class="form-control" 
+                   value="{{ filter.form.price_max.value|default_if_none:'' }}" 
+                   placeholder="100000" min="0">
+        </div>
+        
+        <!-- Сортировка -->
+        <div class="col-md-2">
+            <label class="form-label">Сортировка:</label>
+            <select name="ordering" class="form-select">
+                <option value="">Рекомендованные</option>
+                <option value="title" {% if filter.form.ordering.value == "title" %}selected{% endif %}>
+                    По названию (А-Я)
+                </option>
+                <option value="-title" {% if filter.form.ordering.value == "-title" %}selected{% endif %}>
+                    По названию (Я-А)
+                </option>
+                <option value="price" {% if filter.form.ordering.value == "price" %}selected{% endif %}>
+                    Сначала дешевле
+                </option>
+                <option value="-price" {% if filter.form.ordering.value == "-price" %}selected{% endif %}>
+                    Сначала дороже
+                </option>
+            </select>
+        </div>
+        
+        <!-- Кнопки -->
+        <div class="col-md-12 mt-3">
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-funnel"></i> Применить фильтры
+            </button>
+            <a href="?" class="btn btn-outline-secondary">
+                <i class="bi bi-x-circle"></i> Сбросить
+            </a>
+        </div>
+    </form>
+</div>
+
+<!-- Приветственный баннер -->
+<div class="jumbotron bg-light p-5 rounded-lg mb-4">
+    <div class="row align-items-center">
+        <div class="col-md-8">
+            <h1 class="display-4">Добро пожаловать в магазин Apple!</h1>
+            <p class="lead">Оригинальная техника по лучшим ценам</p>
+            <hr class="my-4">
+            <p>Зарегистрируйтесь для получения персональных скидок</p>
+            <a class="btn btn-primary btn-lg" href="{% url 'main:register' %}" role="button">
+                Зарегистрироваться
+            </a>
+        </div>
+        <div class="col-md-4 text-center">
+            <img src="https://via.placeholder.com/300x200?text=Apple+Store" 
+                 alt="Apple Store" class="img-fluid rounded">
+        </div>
+    </div>
+</div>
+
+<!-- Основной контент -->
+<div class="row mt-5">
+    <!-- Новые товары -->
+    <div class="col-md-8">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h2>Новые поступления</h2>
+            <span class="badge bg-primary">{{ new_products|length }} товаров</span>
+        </div>
+        
+        {% if new_products %}
+        <div class="row">
+            {% for product in new_products %}
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card h-100 shadow-sm">
+                    <div class="position-relative">
+                        <img src="{{ product.image.url }}" class="card-img-top" alt="{{ product.title }}">
+                        {% if product.is_new %}
+                        <span class="position-absolute top-0 start-0 badge bg-danger">New</span>
+                        {% endif %}
+                    </div>
+                    <div class="card-body">
+                        <h5 class="card-title">{{ product.title }}</h5>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <p class="card-text mb-0">{{ product.price }} руб.</p>
+                            {% if product.has_active_discount %}
+                            <span class="badge bg-success">Скидка</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="card-footer bg-white border-0">
+                        <a href="{% url 'main:product_detail' product.id %}" 
+                           class="btn btn-outline-primary w-100">
+                            <i class="bi bi-info-circle"></i> Подробнее
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="alert alert-warning" role="alert">
+            Товары по выбранным фильтрам не найдены. Попробуйте изменить критерии поиска.
+        </div>
+        {% endif %}
+    </div>
+    
+    <!-- Последние новости -->
+    <div class="col-md-4">
+        <h2 class="mb-3">Новости Apple</h2>
+        <div class="list-group">
+            {% for article in recent_articles %}
+            <a href="#" class="list-group-item list-group-item-action">
+                <div class="d-flex w-100 justify-content-between">
+                    <h5 class="mb-1">{{ article.title }}</h5>
+                    <small>{{ article.published_date }}</small>
+                </div>
+                <p class="mb-1">{{ article.teaser }}</p>
+                {% if article.image %}
+                <img src="{{ article.image.url }}" class="img-fluid rounded mt-2" alt="{{ article.title }}">
+                {% endif %}
+            </a>
+            {% empty %}
+            <div class="alert alert-info" role="alert">
+                На данный момент нет новостей.
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- Стили для улучшения внешнего вида -->
+<style>
+    .jumbotron {
+        background: linear-gradient(to right, #f8f9fa, #e9ecef);
+        border-radius: 10px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    
+    .card {
+        transition: transform 0.3s, box-shadow 0.3s;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+    
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+    
+    .card-img-top {
+        height: 180px;
+        object-fit: cover;
+    }
+    
+    .badge {
+        font-size: 0.85rem;
+        font-weight: 500;
+    }
+    
+    .form-select, .form-control {
+        border-radius: 6px;
+        padding: 0.5rem 1rem;
+    }
+</style>
+{% endblock %}

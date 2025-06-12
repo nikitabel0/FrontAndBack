@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+
+{% block title %}Профиль{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-6">
+        <h2>Ваш профиль</h2>
+        
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="card-title">Личная информация</h5>
+                <p><strong>Имя пользователя:</strong> {{ user.username }}</p>
+                <p><strong>Email:</strong> {{ user.email }}</p>
+                <p><strong>Телефон:</strong> {{ user.profile.phone }}</p>
+                <p><strong>Адрес:</strong> {{ user.profile.address }}</p>
+                <p><strong>Роль:</strong> 
+                    {% if user.profile.role == 'admin' %}
+                        <span class="badge bg-danger">Администратор</span>
+                    {% else %}
+                        <span class="badge bg-primary">Пользователь</span>
+                    {% endif %}
+                </p>
+                <a href="#" class="btn btn-outline-secondary">Редактировать профиль</a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <h2>История заказов</h2>
+        {% if orders %}
+            <div class="list-group">
+                {% for order in orders %}
+                    <a href="#" class="list-group-item list-group-item-action">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h5 class="mb-1">Заказ #{{ order.id }}</h5>
+                            <small>{{ order.created_at|date:"d.m.Y H:i" }}</small>
+                        </div>
+                        <p class="mb-1">Статус: 
+                            <span class="
+                                {% if order.status == 'completed' %}text-success{% endif %}
+                                {% if order.status == 'canceled' %}text-danger{% endif %}
+                            ">
+                                {{ order.get_status_display }}
+                            </span>
+                        </p>
+                        <strong>{{ order.total_price }} руб.</strong>
+                    </a>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="alert alert-info">
+                У вас пока нет заказов
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

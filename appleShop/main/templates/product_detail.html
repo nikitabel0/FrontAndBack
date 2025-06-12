@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ product.title }} - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row">
+        <div class="col-md-6">
+            <img src="{{ product.image.url }}" class="img-fluid rounded" alt="{{ product.title }}">
+        </div>
+        <div class="col-md-6">
+            <h1>{{ product.title }}</h1>
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h2 class="text-primary">{{ product.price }} руб.</h2>
+                {% if product.has_active_discount %}
+                    <span class="badge bg-danger">Скидка {{ product.discount_percent }}%</span>
+                {% endif %}
+                {% if product.is_new %}
+                    <span class="badge bg-success">Новинка</span>
+                {% endif %}
+            </div>
+            
+            <p class="lead">{{ product.description }}</p>
+            
+            <div class="mb-4">
+                <h4>Категория:</h4>
+                <a href="#" class="btn btn-outline-secondary">{{ product.category.name }}</a>
+            </div>
+            
+            <div class="d-grid gap-2">
+             {% if in_basket %}
+    <div class="d-flex align-items-center gap-2 mb-3">
+        <span class="text-success">Товар в корзине</span>
+        <a href="{% url 'main:basket' %}" class="btn btn-outline-success">Перейти в корзину</a>
+    </div>
+{% else %}
+    <form method="post">
+        {% csrf_token %}
+        <div class="input-group mb-3">
+            <input type="number" name="quantity" value="1" min="1" class="form-control">
+            <button class="btn btn-primary" type="submit" name="add_to_basket">Добавить в корзину</button>
+        </div>
+    </form>
+{% endif %}
+                <a href="{% url 'main:home' %}" class="btn btn-outline-secondary">Назад к каталогу</a>
+            </div>
+        </div>
+    </div>
+    
+    {% if product.full_description %}
+    <div class="row mt-5">
+        <div class="col-12">
+            <h3>Подробное описание</h3>
+            <div class="card">
+                <div class="card-body">
+                    {{ product.full_description|linebreaks }}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    {% if related_products %}
+    <div class="row mt-5">
+        <div class="col-12">
+            <h3>Похожие товары</h3>
+            <div class="row">
+                {% for product in related_products %}
+                    <div class="col-md-3 mb-4">
+                        <div class="card h-100">
+                            <img src="{{ product.image.url }}" class="card-img-top" alt="{{ product.title }}">
+                            <div class="card-body">
+                                <h5 class="card-title">{{ product.title }}</h5>
+                                <p class="card-text">{{ product.price }} руб.</p>
+                                <a href="{% url 'main:product_detail' product.id %}" class="btn btn-outline-primary">Подробнее</a>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

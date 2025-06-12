@@ -1,0 +1,108 @@
+{% extends 'base.html' %}
+
+{% block title %}Админ-панель{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Панель администратора</h2>
+    <span class="badge bg-danger">ADMIN</span>
+</div>
+
+<div class="row">
+    <div class="col-md-3">
+        <div class="card text-white bg-primary mb-3">
+            <div class="card-header">Пользователи</div>
+            <div class="card-body">
+                <h5 class="card-title">{{ user_count }}</h5>
+                <p class="card-text">Зарегистрировано</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card text-white bg-success mb-3">
+            <div class="card-header">Заказы</div>
+            <div class="card-body">
+                <h5 class="card-title">{{ order_count }}</h5>
+                <p class="card-text">За последний месяц</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card text-white bg-info mb-3">
+            <div class="card-header">Товары</div>
+            <div class="card-body">
+                <h5 class="card-title">{{ product_count }}</h5>
+                <p class="card-text">В каталоге</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card text-white bg-warning mb-3">
+            <div class="card-header">Выручка</div>
+            <div class="card-body">
+                <h5 class="card-title">{{ revenue }} руб.</h5>
+                <p class="card-text">За все время</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card mt-4">
+    <div class="card-header">
+        <ul class="nav nav-tabs card-header-tabs">
+            <li class="nav-item">
+                <a class="nav-link active" href="#">Последние заказы</a>
+            </li>
+          <li class="nav-item">
+    <a class="nav-link" href="{% url 'main:admin_users' %}">Пользователи</a>
+</li>
+            <li class="nav-item">
+    <a class="nav-link" href="{% url 'main:admin_products' %}">Товары</a>
+</li>
+        </ul>
+    </div>
+    <div class="card-body">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Пользователь</th>
+                    <th>Дата</th>
+                    <th>Сумма</th>
+                    <th>Статус</th>
+                    <th>Действия</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in recent_orders %}
+                    <tr>
+                        <td>{{ order.id }}</td>
+                        <td>{{ order.user.username }}</td>
+                        <td>{{ order.created_at|date:"d.m.Y H:i" }}</td>
+                        <td>{{ order.total_price }} руб.</td>
+                        <td>
+                            <span class="badge 
+                                {% if order.status == 'completed' %}bg-success{% endif %}
+                                {% if order.status == 'new' %}bg-primary{% endif %}
+                                {% if order.status == 'canceled' %}bg-danger{% endif %}
+                            ">
+                                {{ order.get_status_display }}
+                            </span>
+                        </td>
+                        <td>
+                            <a href="#" class="btn btn-sm btn-outline-secondary">Просмотр</a>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center">Нет заказов</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
